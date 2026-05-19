@@ -1,0 +1,73 @@
+version: '3.8'
+
+services:
+  # 1. Database (MySQL)
+  db:
+    image: mysql:8.0
+    container_name: fitness-mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: aifitness
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+    networks:
+      - fitness-network
+
+  # 2. Core Service (Spring Boot)
+  core-service:
+    build:
+      context: ./core-service
+      dockerfile: Dockerfile
+    container_name: fitness-core
+    restart: always
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://db:3306/aifitness?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=rootpassword
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+    depends_on:
+      - db
+    networks:
+      - fitness-network
+
+  # 3. Chat & AI Service (Node.js)
+  chat-service:
+    build:
+      context: ./chat-service
+      dockerfile: Dockerfile
+    container_name: fitness-chat
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - PORT=3000
+      - GEMINI_API_KEY=your_gemini_api_key_here
+    networks:
+      - fitness-network
+
+  # 4. Frontend (React + Vite + Nginx)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: fitness-frontend
+    restart: always
+    ports:
+      - "80:80"
+    depends_on:
+      - core-service
+      - chat-service
+    networks:
+      - fitness-network
+
+volumes:
+  db_data:
+
+networks:
+  fitness-network:
+    driver: bridge
