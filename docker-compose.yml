@@ -15,6 +15,11 @@ services:
       - db_data:/var/lib/mysql
     networks:
       - fitness-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-prootpassword"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   # 2. Core Service (Spring Boot)
   core-service:
@@ -31,7 +36,8 @@ services:
       - SPRING_DATASOURCE_PASSWORD=rootpassword
       - SPRING_JPA_HIBERNATE_DDL_AUTO=update
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     networks:
       - fitness-network
 
