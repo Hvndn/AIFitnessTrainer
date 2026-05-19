@@ -22,6 +22,7 @@ glob: "**/*.{js,jsx,ts,tsx,css,scss,html,vue,svelte,dart,swift,kt,xml}"
 1. **Touch Targets**: Button tối thiểu 44x44px (Chuẩn ngón tay cái).
 2. **Safe Areas**: Tôn trọng tai thỏ (Notch) và Home Indicator trên iOS/Android.
 3. **Mobile-First**: Code CSS cho mobile trước, override cho PC sau.
+4. **Mandatory Checks**: Bắt buộc thiết kế responsive mượt mà cho tất cả thiết bị. KHÔNG commit hoặc bàn giao bất kỳ giao diện nào chưa được kiểm thử độ hiển thị trên màn hình nhỏ (Mobile viewports).
 
 ---
 

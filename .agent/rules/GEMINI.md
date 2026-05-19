@@ -85,6 +85,11 @@ Mọi file trong hệ thống phải tuân thủ cấu trúc liên kết:
 - **Contextual Invocation**: Tự động nhận diện Domain dựa trên Metadata Header của file đang sửa.
 - **Orchestration**: Orchestrator đóng vai trò "Điều phối viên" điều động nhân sự dựa trên `skill_ref` của từng Agent.
 
+## ⚙️ 5. CUSTOM INSTRUCTIONS (Hướng dẫn tùy chỉnh)
+
+1. 📱 **Luôn cập nhật Responsive:** Mọi tính năng Giao diện (Frontend) mới được xây dựng đều phải được thiết kế responsive mượt mà theo chuẩn Mobile-First và kiểm thử kỹ lưỡng trên các kích thước màn hình nhỏ. Không chấp nhận layout bị tràn hoặc vỡ.
+2. 🌿 **Quy tắc tạo nhánh (Branching Convention):** Mỗi lần làm một chức năng hoặc sửa lỗi, bắt buộc phải tạo một nhánh Git mới từ nhánh `develop` trước khi phát triển theo cú pháp `feature/tên-chức-năng` hoặc `bugfix/tên-lỗi`, sau đó mới tạo PR để merge.
+
 ---
 
 *Văn bản này là nguồn dữ liệu tối cao, định hướng mọi hành vi của hệ thống.*

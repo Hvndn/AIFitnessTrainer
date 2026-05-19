@@ -96,7 +96,9 @@ Sử dụng các lệnh sau để kích hoạt quy trình tác chiến chuyên s
 
 ## Hướng dẫn tùy chỉnh
 
-Thêm các hướng dẫn cụ thể cho dự án của bạn tại đây.
+1. 📱 **Luôn cập nhật Responsive:** Mọi tính năng Giao diện (Frontend) mới được xây dựng đều phải được thiết kế responsive mượt mà theo chuẩn Mobile-First và kiểm thử kỹ lưỡng trên các kích thước màn hình nhỏ. Không chấp nhận layout bị tràn hoặc vỡ.
+2. 🌿 **Quy tắc tạo nhánh (Branching Convention):** Mỗi lần làm một chức năng hoặc sửa lỗi, bắt buộc phải tạo một nhánh Git mới từ nhánh `develop` trước khi phát triển theo cú pháp `feature/tên-chức-năng` hoặc `bugfix/tên-lỗi`, sau đó mới tạo PR để merge.
 
 ---
 *Được tạo bởi Antigravity IDE*
+
