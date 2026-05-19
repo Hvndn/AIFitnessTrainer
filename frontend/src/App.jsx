@@ -14,6 +14,151 @@ function App() {
   const [feedback, setFeedback] = useState('Sẵn sàng! Hãy bấm nút kích hoạt Camera AI.')
   const [activeTab, setActiveTab] = useState('home')
 
+  // Auth Form States
+  const [loginEmail, setLoginEmail] = useState('')
+  const [loginPassword, setLoginPassword] = useState('')
+  
+  const [registerName, setRegisterName] = useState('')
+  const [registerEmail, setRegisterEmail] = useState('')
+  const [registerPassword, setRegisterPassword] = useState('')
+  const [registerConfirmPassword, setRegisterConfirmPassword] = useState('')
+  
+  // API Feedback and Loading States
+  const [loading, setLoading] = useState(false)
+  const [authError, setAuthError] = useState('')
+  const [authSuccess, setAuthSuccess] = useState('')
+  
+  // Active Logged-in User Session
+  const [currentUser, setCurrentUser] = useState(null)
+
+  // Load session from localStorage on mount
+  useEffect(() => {
+    const savedUser = localStorage.getItem('aifitness_user')
+    if (savedUser) {
+      try {
+        setCurrentUser(JSON.parse(savedUser))
+      } catch (e) {
+        localStorage.removeItem('aifitness_user')
+      }
+    }
+  }, [])
+
+  // Action: Logout user
+  const handleLogout = () => {
+    localStorage.removeItem('aifitness_user')
+    setCurrentUser(null)
+    setAuthSuccess('Đăng xuất thành công!')
+    setTimeout(() => setAuthSuccess(''), 3000)
+    navigateToHome()
+  }
+
+  // Action: Register form submit handler
+  const handleRegisterSubmit = async (e) => {
+    e.preventDefault()
+    setAuthError('')
+    setAuthSuccess('')
+    
+    if (registerPassword !== registerConfirmPassword) {
+      setAuthError('Mật khẩu xác nhận không khớp!')
+      return
+    }
+    
+    if (registerPassword.length < 8) {
+      setAuthError('Mật khẩu phải chứa tối thiểu 8 ký tự!')
+      return
+    }
+    
+    setLoading(true)
+    try {
+      const response = await fetch('http://localhost:8081/api/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          name: registerName,
+          email: registerEmail,
+          password: registerPassword
+        })
+      })
+      
+      const data = await response.json()
+      
+      if (!response.ok) {
+        throw new Error(data.message || 'Đăng ký thất bại!')
+      }
+      
+      // Success! Auto-login
+      localStorage.setItem('aifitness_user', JSON.stringify(data))
+      setCurrentUser(data)
+      setAuthSuccess(`Đăng ký thành công! Chào mừng, ${data.name}!`)
+      
+      // Clear form
+      setRegisterName('')
+      setRegisterEmail('')
+      setRegisterPassword('')
+      setRegisterConfirmPassword('')
+      
+      // Redirect after a short delay
+      setTimeout(() => {
+        setAuthSuccess('')
+        navigateToHome()
+      }, 2000)
+      
+    } catch (err) {
+      setAuthError(err.message || 'Không thể kết nối đến máy chủ!')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // Action: Login form submit handler
+  const handleLoginSubmit = async (e) => {
+    e.preventDefault()
+    setAuthError('')
+    setAuthSuccess('')
+    setLoading(true)
+    
+    try {
+      const response = await fetch('http://localhost:8081/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          email: loginEmail,
+          password: loginPassword
+        })
+      })
+      
+      const data = await response.json()
+      
+      if (!response.ok) {
+        throw new Error(data.message || 'Sai tài khoản hoặc mật khẩu!')
+      }
+      
+      // Success!
+      localStorage.setItem('aifitness_user', JSON.stringify(data))
+      setCurrentUser(data)
+      setAuthSuccess(`Chào mừng quay trở lại, ${data.name}!`)
+      
+      // Clear form
+      setLoginEmail('')
+      setLoginPassword('')
+      
+      // Redirect after a short delay
+      setTimeout(() => {
+        setAuthSuccess('')
+        navigateToHome()
+      }, 2000)
+      
+    } catch (err) {
+      setAuthError(err.message || 'Không thể kết nối đến máy chủ!')
+    } finally {
+      setLoading(false)
+    }
+  }
+
   // Skeleton Simulation state
   const [skeleton, setSkeleton] = useState({
     head: { x: 200, y: 100 },
@@ -156,6 +301,8 @@ function App() {
   }
 
   const navigateToAuth = (tab) => {
+    setAuthError('')
+    setAuthSuccess('')
     setAuthTab(tab)
     setCurrentPage('auth')
     window.scrollTo({ top: 0, behavior: 'smooth' })
@@ -227,8 +374,20 @@ function App() {
           </ul>
         </nav>
         <div className="nav-actions">
-          <button className="btn-outline" onClick={() => navigateToAuth('login')}>Đăng nhập</button>
-          <button className="btn-premium" onClick={() => navigateToAuth('register')}>Bắt đầu ngay</button>
+          {currentUser ? (
+            <div className="user-profile-nav">
+              <span className="user-nav-welcome">
+                Chào, <strong className="user-nav-name">{currentUser.name}</strong>!
+                <span className="user-badge">PREMIUM</span>
+              </span>
+              <button className="btn-outline-small" onClick={handleLogout}>Đăng xuất</button>
+            </div>
+          ) : (
+            <>
+              <button className="btn-outline" onClick={() => navigateToAuth('login')}>Đăng nhập</button>
+              <button className="btn-premium" onClick={() => navigateToAuth('register')}>Bắt đầu ngay</button>
+            </>
+          )}
         </div>
       </header>
 
@@ -516,9 +675,13 @@ function App() {
                 </button>
               </div>
               
+              {/* Error and Success alerts */}
+              {authError && <div className="auth-alert error-alert">{authError}</div>}
+              {authSuccess && <div className="auth-alert success-alert">{authSuccess}</div>}
+
               {authTab === 'login' ? (
                 /* LOGIN FORM */
-                <form className="auth-form" onSubmit={(e) => e.preventDefault()}>
+                <form className="auth-form" onSubmit={handleLoginSubmit}>
                   <div className="form-group">
                     <label className="form-label">Địa chỉ Email</label>
                     <div className="input-glow-wrapper">
@@ -526,7 +689,10 @@ function App() {
                         type="email" 
                         className="form-input" 
                         placeholder="ten@viethuong.com" 
+                        value={loginEmail}
+                        onChange={(e) => setLoginEmail(e.target.value)}
                         required
+                        disabled={loading}
                       />
                     </div>
                   </div>
@@ -538,26 +704,29 @@ function App() {
                         type="password" 
                         className="form-input" 
                         placeholder="••••••••" 
+                        value={loginPassword}
+                        onChange={(e) => setLoginPassword(e.target.value)}
                         required
+                        disabled={loading}
                       />
                     </div>
                   </div>
                   
                   <div className="form-options">
                     <label className="form-remember">
-                      <input type="checkbox" className="form-checkbox" />
+                      <input type="checkbox" className="form-checkbox" disabled={loading} />
                       Ghi nhớ tôi
                     </label>
                     <a href="#forgot" className="form-forgot">Quên mật khẩu?</a>
                   </div>
                   
-                  <button type="submit" className="btn-auth-submit">
-                    Đăng nhập hệ thống
+                  <button type="submit" className="btn-auth-submit" disabled={loading}>
+                    {loading ? 'Đang xác thực...' : 'Đăng nhập hệ thống'}
                   </button>
                 </form>
               ) : (
                 /* REGISTER FORM */
-                <form className="auth-form" onSubmit={(e) => e.preventDefault()}>
+                <form className="auth-form" onSubmit={handleRegisterSubmit}>
                   <div className="form-group">
                     <label className="form-label">Họ và Tên</label>
                     <div className="input-glow-wrapper">
@@ -565,7 +734,10 @@ function App() {
                         type="text" 
                         className="form-input" 
                         placeholder="Nguyễn Văn A" 
+                        value={registerName}
+                        onChange={(e) => setRegisterName(e.target.value)}
                         required
+                        disabled={loading}
                       />
                     </div>
                   </div>
@@ -577,7 +749,10 @@ function App() {
                         type="email" 
                         className="form-input" 
                         placeholder="ten@viethuong.com" 
+                        value={registerEmail}
+                        onChange={(e) => setRegisterEmail(e.target.value)}
                         required
+                        disabled={loading}
                       />
                     </div>
                   </div>
@@ -589,7 +764,10 @@ function App() {
                         type="password" 
                         className="form-input" 
                         placeholder="Tối thiểu 8 ký tự" 
+                        value={registerPassword}
+                        onChange={(e) => setRegisterPassword(e.target.value)}
                         required
+                        disabled={loading}
                       />
                     </div>
                   </div>
@@ -601,18 +779,21 @@ function App() {
                         type="password" 
                         className="form-input" 
                         placeholder="Nhập lại mật khẩu" 
+                        value={registerConfirmPassword}
+                        onChange={(e) => setRegisterConfirmPassword(e.target.value)}
                         required
+                        disabled={loading}
                       />
                     </div>
                   </div>
                   
                   <label className="form-remember" style={{ fontSize: '13px', margin: '4px 0' }}>
-                    <input type="checkbox" className="form-checkbox" required />
+                    <input type="checkbox" className="form-checkbox" required disabled={loading} />
                     Tôi đồng ý với Điều khoản dịch vụ & Chính sách bảo mật
                   </label>
                   
-                  <button type="submit" className="btn-auth-submit">
-                    Đăng ký tài khoản mới
+                  <button type="submit" className="btn-auth-submit" disabled={loading}>
+                    {loading ? 'Đang khởi tạo...' : 'Đăng ký tài khoản mới'}
                   </button>
                 </form>
               )}
