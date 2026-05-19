@@ -65,6 +65,8 @@ services:
     restart: always
     ports:
       - "5173:80"
+    environment:
+      - PORT=80
     depends_on:
       - core-service
       - chat-service
